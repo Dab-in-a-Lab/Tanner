@@ -1,0 +1,89 @@
+import org.osbot.rs07.api.filter.Filter;
+import org.osbot.rs07.api.map.Area;
+import org.osbot.rs07.api.model.NPC;
+import org.osbot.rs07.api.ui.RS2Widget;
+import org.osbot.rs07.script.Script;
+import org.osbot.rs07.script.ScriptManifest;
+import org.osbot.rs07.utility.ConditionalSleep;
+
+
+@ScriptManifest(version = 1.0, info = "", author = "Dab in a Lab", logo = "", name = "Lab Certified: Hide Tanner")
+
+
+public class Main extends Script {
+
+
+    @Override
+    public void onStart() throws InterruptedException {
+        super.onStart();
+        log("Welcome to my Hide Tanner");
+        getInventory();
+        myPlayer().getPosition();
+    }
+
+
+    @Override
+    public int onLoop() throws InterruptedException {
+
+        Area Store = new Area(3272, 3192, 3277, 3190);
+        RS2Widget hide_select = getWidgets().get(324, 149);
+        NPC trade = getNpcs().closest("Ellis");
+        NPC tanner = getNpcs().closest(new Filter<NPC>() {
+
+
+            @Override
+            public boolean match(NPC npc) {
+
+
+                if (!myPlayer().getPosition().equals(Store)) {
+                    if (getWalking().webWalk(Store));
+
+                    new ConditionalSleep(3000, 1000) {
+                        @Override
+                        public boolean condition() throws InterruptedException {
+                            return myPlayer().getPosition().equals(Store);
+                        }
+                    };
+
+                } else {
+                    if (myPlayer().getPosition().equals(Store))
+                    Trade_Ellis();
+
+                    new ConditionalSleep(600, 400) {
+                        @Override
+                        public boolean condition() throws InterruptedException {
+                            return myPlayer().getPosition().equals(Store);
+                        }
+                    }.sleep();
+
+
+                    if (hide_select != null) {
+                        if (hide_select.interact("All")) ;
+                    }
+                    return npc != null && npc.exists() && getMap().canReach(npc) && getName().equals("Ellis");
+                }
+                return true;
+            }
+
+            public void Trade_Ellis(){
+                trade.interact("Trade");
+            }
+
+        });
+        return 600;
+
+    }
+
+
+
+
+
+
+
+
+
+    @Override
+    public void onExit() throws InterruptedException {
+        super.onExit();
+    }
+}
