@@ -1,3 +1,4 @@
+import org.osbot.rs07.api.GrandExchange;
 import org.osbot.rs07.api.filter.Filter;
 import org.osbot.rs07.api.map.Area;
 import org.osbot.rs07.api.model.NPC;
@@ -7,18 +8,20 @@ import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 import org.osbot.rs07.utility.ConditionalSleep;
 
-
 @ScriptManifest(version = 1.0, info = "", author = "Dab in a Lab", logo = "", name = "Lab Certified: Hide Tanner")
 
 
 public class Main extends Script {
-
+    Area Store = new Area(3272, 3192, 3277, 3190);
+    Area Bank = new Area(3269, 3169, 3270, 3164);
+    Area GE = new Area(3162, 3487, 3167, 3484);
 
     @Override
     public void onStart() throws InterruptedException {
         super.onStart();
         log("Welcome to my Hide Tanner");
         getInventory();
+        getBank();
         myPlayer().getPosition();
     }
 
@@ -26,10 +29,11 @@ public class Main extends Script {
     @Override
     public int onLoop() throws InterruptedException {
 
-        Area Store = new Area(3272, 3192, 3277, 3190);
-        Area Bank = new Area(3269, 3169, 3270, 3164);
-        Area GE = new Area(3162, 3487, 3167, 3484);
+        int cowhide_price = getGrandExchange().getItemPrice(GrandExchange.Box.BOX_1);
+        RS2Widget up_five= getWidgets().get(465,24,53);
         RS2Object bank_booth = getObjects().closest("Bank booth");
+        NPC buying = getNpcs().closest("Grand Exchange Clerk");
+        RS2Widget ge_box = getWidgets().get(465, 2);
         RS2Widget hide_select = getWidgets().get(324, 149);
         NPC trade = getNpcs().closest("Ellis");
         NPC tanner = getNpcs().closest(new Filter<NPC>() {
@@ -38,21 +42,48 @@ public class Main extends Script {
             @Override
             public boolean match(NPC npc) {
 
-                {if (getInventory().contains("Hard leather"))
-                    if (getBank().depositAll("Hard leather"));}
+                {
+                    if (getInventory().contains("Hard leather"))
+                        if (getBank().depositAll("Hard leather")) ;
+                }
 
                 if (!getInventory().contains("Cowhide")) {
                     if (!Bank.contains(myPlayer().getPosition()))
-                        if (getWalking().webWalk(Bank))
-                            if (Bank.contains(myPlayer()))
-                                if (!getInventory().contains("Cowhide"))
-                                     if (bank_booth != null)
-                                        if (bank_booth.interact("Bank"))
-                                            log("At the bank and withdrawing Cowhides");
-                                            Withdraw_Coins();
-                                                 Withdraw_Cowhide();
-                                                    GE_Walk();
-                                                        log("Time to restock");
+                        if (getInventory().contains("Cowhide") || getBank().contains("Cowhide"))
+                                if (getWalking().webWalk(Bank))
+                                    if (Bank.contains(myPlayer()))
+                                        if (!getInventory().contains("Cowhide"))
+                                            if (bank_booth != null)
+                                                if (bank_booth.interact("Bank")) {
+                                                    log("At the bank and withdrawing Cowhides");
+                                                    Withdraw_Coins();
+                                                    Withdraw_Cowhide();}
+
+                    GE_Walk();{
+                        log("Walking the the GE");
+                        if (GE.contains(myPlayer().getPosition()))
+                            log("My player is at the GE");
+                        { if (buying != null)
+                            Resupply();
+                            log("Time to restock");
+                        }
+                    }
+
+
+                    new ConditionalSleep(10000, 7000) {
+                        @Override
+                        public boolean condition() throws InterruptedException {
+                            return GE.contains(myPlayer().getPosition());
+                        }
+                    }.sleep();
+
+
+                    new ConditionalSleep(3000, 1000) {
+                        @Override
+                        public boolean condition() throws InterruptedException {
+                            return GE.contains(myPlayer());
+                        }
+                    }.sleep();
 
 
                 } else {
@@ -83,8 +114,9 @@ public class Main extends Script {
                             if (hide_select != null) {
                                 if (hide_select.isVisible())
                                     log("Identified Widget");
-                                    if (hide_select.interact("Tan All")) ;
-                                    log("Hides tanned");}
+                                if (hide_select.interact("Tan All")) ;
+                                log("Hides tanned");
+                            }
 
                         new ConditionalSleep(100, 100) {
                             @Override
@@ -111,9 +143,10 @@ public class Main extends Script {
                 }.sleep();
 
             }
+
             public void Withdraw_Coins() {
                 if (!getInventory().contains("Coins"))
-                    if (getBank().withdrawAll("Coins"));
+                    if (getBank().withdrawAll("Coins")) ;
 
                 new ConditionalSleep(1500, 500) {
                     @Override
@@ -123,9 +156,9 @@ public class Main extends Script {
                 }.sleep();
             }
 
-            public void Withdraw_Cowhide(){
+            public void Withdraw_Cowhide() {
                 if (!getInventory().contains("Cowhide"))
-                    if (getBank().withdrawAll("Cowhide"));
+                    if (getBank().withdrawAll("Cowhide")) ;
 
                 new ConditionalSleep(1500, 500) {
                     @Override
@@ -135,9 +168,9 @@ public class Main extends Script {
                 }.sleep();
             }
 
-            public void GE_Walk(){
-                if (!getBank().contains("Cowhide") && !getInventory().contains("Cowhide"));
-                    if (getWalking().webWalk(GE));
+            public void GE_Walk() {
+                if (!getBank().contains("Cowhide") && !getInventory().contains("Cowhide")) ;
+                if (getWalking().webWalk(GE)) ;
 
                 new ConditionalSleep(1000, 600) {
                     @Override
@@ -145,6 +178,21 @@ public class Main extends Script {
                         return (!getBank().contains("Cowhide") && !getInventory().contains("Cowhide"));
                     }
                 }.sleep();
+            }
+
+            public void Resupply() {
+                if (buying != null)
+                    if (buying.interact("Exchange"))
+                        if (getGrandExchange().buyItem(1739, "Cowhide", cowhide_price, 2100))
+
+                if (getGrandExchange().collect())
+
+                    new ConditionalSleep(1000, 600) {
+                        @Override
+                        public boolean condition() throws InterruptedException {
+                            return getGrandExchange().collect();
+                        }
+                    }.sleep();
             }
         });
         return 600;
