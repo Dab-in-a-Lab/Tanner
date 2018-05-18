@@ -30,7 +30,7 @@ public class Main extends Script {
     public int onLoop() throws InterruptedException {
 
         RS2Widget click_hide = getWidgets().get(162,42,0);
-        RS2Widget up_five= getWidgets().get(465,24,53);
+        RS2Widget up_five= getWidgets().get(465,24,13);
         RS2Object bank_booth = getObjects().closest("Bank booth");
         NPC buying = getNpcs().closest("Grand Exchange Clerk");
         RS2Widget ge_box = getWidgets().get(465, 2);
@@ -68,16 +68,16 @@ public class Main extends Script {
                         {
                             if (buying != null)
 
-                                    new ConditionalSleep(1500, 500) {
-                                        @Override
-                                        public boolean condition() throws InterruptedException {
-                                            return ge_box != null && ge_box.isVisible();
-                                        }
-                                    }.sleep();
+                                new ConditionalSleep(1500, 500) {
+                                    @Override
+                                    public boolean condition() throws InterruptedException {
+                                        return ge_box != null && ge_box.isVisible();
+                                    }
+                                }.sleep();
 
-                                    Resupply();
+                            Resupply();
 
-                                    log("Time to restock");
+                            log("Time to restock");
                         }
                     }
 
@@ -198,40 +198,37 @@ public class Main extends Script {
                     if (getGrandExchange().buyItems(GrandExchange.Box.BOX_1))
                         log("selecting box 1");
 
-                                 new ConditionalSleep(2000,500) {
-                                    @Override
-                                     public boolean condition() throws InterruptedException {
-                                        return getDialogues().inDialogue();
-                                     }
-                                 }.sleep();
+                new ConditionalSleep(2000,500) {
+                    @Override
+                    public boolean condition() throws InterruptedException {
+                        return getDialogues().inDialogue();
+                    }
+                }.sleep();
 
                 if (getGrandExchange().isBuyOfferOpen())
                     if (getDialogues().inDialogue())
-                        if (getKeyboard().typeString("cowhide"))
+                        if (getKeyboard().typeString("cow"))
                             log("searching Cowhide");
 
-                                new ConditionalSleep(7000, 1000) {
-                                   @Override
-                                    public boolean condition() throws InterruptedException {
-                                        return (click_hide.isVisible());
-                                   }
-                                }.sleep();
-                if (click_hide != null)
-                    if (click_hide.isVisible())
-                        log("Spotted the hide");
-                            if (click_hide.interact());
-                            log("Clicking the hide");
+                try {
+                    sleep(random(5000,8000));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
+                if (getKeyboard().typeString("hide"))
 
-
-
-
-                new ConditionalSleep(3000, 1000) {
-                    @Override
-                    public boolean condition() throws InterruptedException {
-                        return getGrandExchange().confirm();
+                    try {
+                        sleep(random(5000,8000));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                }.sleep();
+
+                if (getGrandExchange().isOpen())
+                    up_five.interact();
+                    log("Clicking +5");
+
+
 
             }
 
